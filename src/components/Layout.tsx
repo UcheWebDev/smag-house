@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { ChefHat, LayoutDashboard, UtensilsCrossed, Settings, Menu, X } from "lucide-react";
+import { ChefHat, LayoutDashboard, UtensilsCrossed, Settings, Menu, X, FolderKanban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
@@ -11,6 +11,7 @@ interface LayoutProps {
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: UtensilsCrossed, label: "Menu Items", path: "/menu" },
+  { icon: FolderKanban, label: "Categories", path: "/categories" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 

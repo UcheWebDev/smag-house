@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MenuItem, MenuCategory } from "@/types/menu";
+import { MenuItem, MenuCategory, Category } from "@/types/menu";
 import {
   Dialog,
   DialogContent,
@@ -28,13 +28,7 @@ interface MenuItemDialogProps {
   onSave: (item: Omit<MenuItem, "id" | "createdAt" | "updatedAt"> & { id?: string }) => void;
 }
 
-const categories: { value: MenuCategory; label: string }[] = [
-  { value: "appetizers", label: "Appetizers" },
-  { value: "mains", label: "Main Courses" },
-  { value: "desserts", label: "Desserts" },
-  { value: "drinks", label: "Drinks" },
-  { value: "sides", label: "Sides" },
-];
+const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
 
 export default function MenuItemDialog({
   open,
@@ -42,6 +36,7 @@ export default function MenuItemDialog({
   item,
   onSave,
 }: MenuItemDialogProps) {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -50,6 +45,20 @@ export default function MenuItemDialog({
     image: "",
     available: true,
   });
+
+  useEffect(() => {
+    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+    if (storedCategories) {
+      const parsed = JSON.parse(storedCategories);
+      setCategories(
+        parsed.map((cat: any) => ({
+          ...cat,
+          createdAt: new Date(cat.createdAt),
+          updatedAt: new Date(cat.updatedAt),
+        }))
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (item) {
@@ -148,14 +157,18 @@ export default function MenuItemDialog({
                   }
                 >
                   <SelectTrigger id="category">
-                    <SelectValue />
+                    <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </SelectItem>
-                    ))}
+                    {categories.length > 0 ? (
+                      categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.slug}>
+                          {cat.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

@@ -1,9 +1,12 @@
-import { MenuItem } from "@/types/menu";
+import { MenuItem, Category } from "@/types/menu";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+
+const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -12,6 +15,19 @@ interface MenuItemCardProps {
 }
 
 export default function MenuItemCard({ item, onEdit, onDelete }: MenuItemCardProps) {
+  const [categoryName, setCategoryName] = useState(item.category);
+
+  useEffect(() => {
+    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+    if (storedCategories) {
+      const categories: Category[] = JSON.parse(storedCategories);
+      const category = categories.find((cat) => cat.slug === item.category);
+      if (category) {
+        setCategoryName(category.name);
+      }
+    }
+  }, [item.category]);
+
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg">
       <div className="relative aspect-video overflow-hidden bg-muted">
@@ -44,7 +60,7 @@ export default function MenuItemCard({ item, onEdit, onDelete }: MenuItemCardPro
         <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{item.description}</p>
         <div className="mt-2">
           <Badge variant="secondary" className="text-xs capitalize">
-            {item.category}
+            {categoryName}
           </Badge>
         </div>
       </CardContent>

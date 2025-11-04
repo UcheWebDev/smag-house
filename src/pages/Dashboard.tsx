@@ -1,12 +1,31 @@
-import { MenuItem, MenuStats } from "@/types/menu";
+import { MenuItem, MenuStats, Category } from "@/types/menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UtensilsCrossed, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+
+const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
 
 interface DashboardProps {
   items: MenuItem[];
 }
 
 export default function Dashboard({ items }: DashboardProps) {
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+    if (storedCategories) {
+      const parsed = JSON.parse(storedCategories);
+      setCategories(
+        parsed.map((cat: any) => ({
+          ...cat,
+          createdAt: new Date(cat.createdAt),
+          updatedAt: new Date(cat.updatedAt),
+        }))
+      );
+    }
+  }, []);
+
   const stats: MenuStats = {
     totalItems: items.length,
     byCategory: items.reduce((acc, item) => {
@@ -21,12 +40,9 @@ export default function Dashboard({ items }: DashboardProps) {
       ? items.reduce((sum, item) => sum + item.price, 0) / items.length
       : 0;
 
-  const categoryLabels: Record<string, string> = {
-    appetizers: "Appetizers",
-    mains: "Main Courses",
-    desserts: "Desserts",
-    drinks: "Drinks",
-    sides: "Sides",
+  const getCategoryLabel = (slug: string) => {
+    const category = categories.find((cat) => cat.slug === slug);
+    return category?.name || slug;
   };
 
   return (
@@ -113,7 +129,7 @@ export default function Dashboard({ items }: DashboardProps) {
             {Object.entries(stats.byCategory).map(([category, count]) => (
               <div key={category} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm font-medium capitalize text-foreground">
-                  {categoryLabels[category] || category}
+                  {getCategoryLabel(category)}
                 </span>
                 <div className="flex items-center gap-3">
                   <div className="h-2 w-full overflow-hidden rounded-full bg-muted sm:w-32">

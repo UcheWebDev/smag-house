@@ -1,9 +1,13 @@
-export type MenuCategory = 
-  | "appetizers"
-  | "mains"
-  | "desserts"
-  | "drinks"
-  | "sides";
+export type MenuCategory = string;
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface MenuItem {
   id: string;

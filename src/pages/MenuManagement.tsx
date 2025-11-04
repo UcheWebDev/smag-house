@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MenuItem, MenuCategory } from "@/types/menu";
+import { useState, useEffect } from "react";
+import { MenuItem, MenuCategory, Category } from "@/types/menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,6 +20,8 @@ interface MenuManagementProps {
   onDeleteItem: (id: string) => void;
 }
 
+const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
+
 export default function MenuManagement({
   items,
   onAddItem,
@@ -30,6 +32,21 @@ export default function MenuManagement({
   const [categoryFilter, setCategoryFilter] = useState<MenuCategory | "all">("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>();
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+    if (storedCategories) {
+      const parsed = JSON.parse(storedCategories);
+      setCategories(
+        parsed.map((cat: any) => ({
+          ...cat,
+          createdAt: new Date(cat.createdAt),
+          updatedAt: new Date(cat.updatedAt),
+        }))
+      );
+    }
+  }, []);
 
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,11 +108,11 @@ export default function MenuManagement({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="appetizers">Appetizers</SelectItem>
-            <SelectItem value="mains">Main Courses</SelectItem>
-            <SelectItem value="desserts">Desserts</SelectItem>
-            <SelectItem value="drinks">Drinks</SelectItem>
-            <SelectItem value="sides">Sides</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={cat.slug}>
+                {cat.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
