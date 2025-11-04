@@ -1,51 +1,12 @@
 import { useState, useEffect } from "react";
 import { MenuItem } from "@/types/menu";
 import Layout from "@/components/Layout";
-import Dashboard from "./Dashboard";
+import MenuManagement from "./MenuManagement";
 import { useToast } from "@/hooks/use-toast";
-import sampleAppetizer from "@/assets/sample-appetizer.jpg";
-import sampleMain from "@/assets/sample-main.jpg";
-import sampleDessert from "@/assets/sample-dessert.jpg";
 
 const STORAGE_KEY = "restaurant-menu-items";
 
-const initialItems: MenuItem[] = [
-  {
-    id: "1",
-    name: "Bruschetta Trio",
-    description: "Three varieties of artisan bruschetta with fresh tomatoes, basil, and olive oil",
-    price: 12.99,
-    category: "appetizers",
-    image: sampleAppetizer,
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    name: "Grilled Ribeye Steak",
-    description: "12oz prime ribeye with roasted vegetables and garlic herb butter",
-    price: 34.99,
-    category: "mains",
-    image: sampleMain,
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "3",
-    name: "Chocolate Lava Cake",
-    description: "Warm chocolate cake with molten center, served with vanilla ice cream",
-    price: 9.99,
-    category: "desserts",
-    image: sampleDessert,
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
-const Index = () => {
+const MenuPage = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const { toast } = useToast();
 
@@ -60,9 +21,6 @@ const Index = () => {
           updatedAt: new Date(item.updatedAt),
         }))
       );
-    } else {
-      setItems(initialItems);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialItems));
     }
   }, []);
 
@@ -109,9 +67,14 @@ const Index = () => {
 
   return (
     <Layout>
-      <Dashboard items={items} />
+      <MenuManagement
+        items={items}
+        onAddItem={handleAddItem}
+        onUpdateItem={handleUpdateItem}
+        onDeleteItem={handleDeleteItem}
+      />
     </Layout>
   );
 };
 
-export default Index;
+export default MenuPage;
