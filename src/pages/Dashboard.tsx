@@ -30,13 +30,13 @@ export default function Dashboard({ items }: DashboardProps) {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h2>
-        <p className="text-muted-foreground">Overview of your restaurant menu</p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Dashboard</h2>
+        <p className="text-sm text-muted-foreground sm:text-base">Overview of your restaurant menu</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-border bg-card transition-all hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -45,7 +45,7 @@ export default function Dashboard({ items }: DashboardProps) {
             <UtensilsCrossed className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.totalItems}</div>
+            <div className="text-2xl font-bold text-foreground sm:text-3xl">{stats.totalItems}</div>
             <p className="mt-1 text-xs text-muted-foreground">
               Across all categories
             </p>
@@ -60,7 +60,7 @@ export default function Dashboard({ items }: DashboardProps) {
             <DollarSign className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">
+            <div className="text-2xl font-bold text-foreground sm:text-3xl">
               ${averagePrice.toFixed(2)}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -77,7 +77,7 @@ export default function Dashboard({ items }: DashboardProps) {
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">
+            <div className="text-2xl font-bold text-foreground sm:text-3xl">
               {Object.keys(stats.byCategory).length}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -94,7 +94,7 @@ export default function Dashboard({ items }: DashboardProps) {
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">
+            <div className="text-2xl font-bold text-foreground sm:text-3xl">
               {stats.unavailableItems}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -111,12 +111,12 @@ export default function Dashboard({ items }: DashboardProps) {
         <CardContent>
           <div className="space-y-4">
             {Object.entries(stats.byCategory).map(([category, count]) => (
-              <div key={category} className="flex items-center justify-between">
+              <div key={category} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm font-medium capitalize text-foreground">
                   {categoryLabels[category] || category}
                 </span>
                 <div className="flex items-center gap-3">
-                  <div className="h-2 w-32 overflow-hidden rounded-full bg-muted">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted sm:w-32">
                     <div
                       className="h-full bg-primary transition-all"
                       style={{

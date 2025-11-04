@@ -91,7 +91,7 @@ export default function MenuItemDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{item ? "Edit Menu Item" : "Add New Menu Item"}</DialogTitle>
           <DialogDescription>
@@ -100,7 +100,7 @@ export default function MenuItemDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-3 py-4 sm:gap-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Item Name</Label>
               <Input
@@ -124,7 +124,7 @@ export default function MenuItemDialog({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="price">Price ($)</Label>
                 <Input

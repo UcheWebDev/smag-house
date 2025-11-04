@@ -36,12 +36,12 @@ export default function MenuItemCard({ item, onEdit, onDelete }: MenuItemCardPro
         </div>
       </div>
       
-      <CardContent className="p-4">
-        <div className="mb-1 flex items-start justify-between">
-          <h3 className="font-semibold text-foreground">{item.name}</h3>
-          <span className="text-lg font-bold text-primary">${item.price.toFixed(2)}</span>
+      <CardContent className="p-3 sm:p-4">
+        <div className="mb-1 flex items-start justify-between gap-2">
+          <h3 className="text-sm font-semibold text-foreground sm:text-base">{item.name}</h3>
+          <span className="text-base font-bold text-primary sm:text-lg">${item.price.toFixed(2)}</span>
         </div>
-        <p className="line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+        <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{item.description}</p>
         <div className="mt-2">
           <Badge variant="secondary" className="text-xs capitalize">
             {item.category}

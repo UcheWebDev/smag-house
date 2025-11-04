@@ -61,12 +61,12 @@ export default function MenuManagement({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">Menu Items</h2>
-          <p className="text-muted-foreground">Manage your restaurant menu items</p>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Menu Items</h2>
+          <p className="text-sm text-muted-foreground sm:text-base">Manage your restaurant menu items</p>
         </div>
-        <Button onClick={handleAdd} className="gap-2">
+        <Button onClick={handleAdd} className="w-full gap-2 sm:w-auto">
           <Plus className="h-4 w-4" />
           Add Item
         </Button>
@@ -101,8 +101,8 @@ export default function MenuManagement({
       </div>
 
       {filteredItems.length === 0 ? (
-        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 p-8 text-center">
-          <p className="mb-2 text-lg font-medium text-foreground">No items found</p>
+        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 p-6 text-center sm:min-h-[400px] sm:p-8">
+          <p className="mb-2 text-base font-medium text-foreground sm:text-lg">No items found</p>
           <p className="mb-4 text-sm text-muted-foreground">
             {items.length === 0
               ? "Get started by adding your first menu item"
@@ -116,7 +116,7 @@ export default function MenuManagement({
           )}
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredItems.map((item) => (
             <MenuItemCard
               key={item.id}
