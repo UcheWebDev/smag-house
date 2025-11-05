@@ -121,4 +121,47 @@ All colors MUST be HSL.
     font-style: normal;
     background: #f3f4f6;
   }
+
+     .menu-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    .menu-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    .menu-scrollbar::-webkit-scrollbar-thumb {
+      background: #c4c4c4;
+      border-radius: 10px;
+    }
+    .menu-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+    
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in-down {
+      animation: fadeInDown 0.5s ease-out forwards;
+    }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.5s ease-out forwards;
+      opacity: 0; /* Start hidden */
+    }
 }
