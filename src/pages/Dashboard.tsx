@@ -1,9 +1,16 @@
 import { MenuItem, MenuStats, Category } from "@/types/menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UtensilsCrossed, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
+import {
+  UtensilsCrossed,
+  DollarSign,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 
 const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
+
+import { getCategories } from "@/lib/menuApi";
 
 interface DashboardProps {
   items: MenuItem[];
@@ -13,17 +20,16 @@ export default function Dashboard({ items }: DashboardProps) {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-    if (storedCategories) {
-      const parsed = JSON.parse(storedCategories);
-      setCategories(
-        parsed.map((cat: any) => ({
-          ...cat,
-          createdAt: new Date(cat.createdAt),
-          updatedAt: new Date(cat.updatedAt),
-        }))
-      );
-    }
+    void (async () => {
+      try {
+        const cats = await getCategories();
+        setCategories(cats);
+      } catch {
+        // swallow for dashboard; categories fallback to slug
+
+        console.error("Failed to fetch categories");
+      }
+    })();
   }, []);
 
   const stats: MenuStats = {
@@ -48,8 +54,12 @@ export default function Dashboard({ items }: DashboardProps) {
   return (
     <div className="space-y-6 sm:space-y-8">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Dashboard</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">Overview of your restaurant menu</p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          Dashboard
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          Overview of your restaurant menu
+        </p>
       </div>
 
       <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -61,7 +71,9 @@ export default function Dashboard({ items }: DashboardProps) {
             <UtensilsCrossed className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground sm:text-3xl">{stats.totalItems}</div>
+            <div className="text-2xl font-bold text-foreground sm:text-3xl">
+              {stats.totalItems}
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">
               Across all categories
             </p>
@@ -77,11 +89,9 @@ export default function Dashboard({ items }: DashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground sm:text-3xl">
-              ${averagePrice.toFixed(2)}
+              &#8358; {averagePrice.toFixed(2)}
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Per menu item
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Per menu item</p>
           </CardContent>
         </Card>
 
@@ -127,7 +137,10 @@ export default function Dashboard({ items }: DashboardProps) {
         <CardContent>
           <div className="space-y-4">
             {Object.entries(stats.byCategory).map(([category, count]) => (
-              <div key={category} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div
+                key={category}
+                className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+              >
                 <span className="text-sm font-medium capitalize text-foreground">
                   {getCategoryLabel(category)}
                 </span>
@@ -140,7 +153,9 @@ export default function Dashboard({ items }: DashboardProps) {
                       }}
                     />
                   </div>
-                  <span className="w-8 text-sm font-bold text-foreground">{count}</span>
+                  <span className="w-8 text-sm font-bold text-foreground">
+                    {count}
+                  </span>
                 </div>
               </div>
             ))}

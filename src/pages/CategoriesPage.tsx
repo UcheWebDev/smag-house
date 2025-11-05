@@ -3,123 +3,94 @@ import { Category, MenuItem } from "@/types/menu";
 import Layout from "@/components/Layout";
 import CategoriesManagement from "./CategoriesManagement";
 import { useToast } from "@/hooks/use-toast";
-
-const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
-const ITEMS_STORAGE_KEY = "restaurant-menu-items";
-
-const defaultCategories: Category[] = [
-  {
-    id: "1",
-    name: "Appetizers",
-    slug: "appetizers",
-    description: "Start your meal with our delicious starters",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    name: "Main Courses",
-    slug: "mains",
-    description: "Hearty and satisfying main dishes",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "3",
-    name: "Desserts",
-    slug: "desserts",
-    description: "Sweet treats to end your meal",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "4",
-    name: "Drinks",
-    slug: "drinks",
-    description: "Refreshing beverages and cocktails",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "5",
-    name: "Sides",
-    slug: "sides",
-    description: "Perfect accompaniments to your meal",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+import {
+  getCategories,
+  getItems,
+  insertCategory,
+  updateCategory,
+  deleteCategoryById,
+} from "@/lib/menuApi";
 
 const CategoriesPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<MenuItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load categories
-    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-    if (storedCategories) {
-      const parsed = JSON.parse(storedCategories);
-      setCategories(
-        parsed.map((cat: any) => ({
-          ...cat,
-          createdAt: new Date(cat.createdAt),
-          updatedAt: new Date(cat.updatedAt),
-        }))
-      );
-    } else {
-      setCategories(defaultCategories);
-      localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(defaultCategories));
-    }
-
-    // Load items for counting
-    const storedItems = localStorage.getItem(ITEMS_STORAGE_KEY);
-    if (storedItems) {
-      const parsed = JSON.parse(storedItems);
-      setItems(
-        parsed.map((item: any) => ({
-          ...item,
-          createdAt: new Date(item.createdAt),
-          updatedAt: new Date(item.updatedAt),
-        }))
-      );
-    }
+    void loadData();
   }, []);
 
-  const saveCategories = (newCategories: Category[]) => {
-    setCategories(newCategories);
-    localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(newCategories));
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const [cats, its] = await Promise.all([getCategories(), getItems()]);
+      setCategories(cats);
+      setItems(its);
+    } catch (e) {
+      toast({
+        title: "Failed to load data",
+        description: (e as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleAddCategory = (categoryData: Omit<Category, "id" | "createdAt" | "updatedAt">) => {
-    const newCategory: Category = {
-      ...categoryData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    saveCategories([...categories, newCategory]);
-    toast({
-      title: "Category added",
-      description: `${newCategory.name} has been added.`,
-    });
+  const handleAddCategory = async (
+    categoryData: Omit<Category, "id" | "createdAt" | "updatedAt">
+  ) => {
+    try {
+      setIsSaving(true);
+      const created = await insertCategory(categoryData);
+      setCategories([...categories, created]);
+      toast({
+        title: "Category added",
+        description: `${created.name} has been added.`,
+      });
+    } catch (e) {
+      toast({
+        title: "Add failed",
+        description: (e as Error).message,
+        variant: "destructive",
+      });
+      throw e; // Re-throw to let the component know it failed
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleUpdateCategory = (updatedCategory: Category) => {
-    const newCategories = categories.map((cat) =>
-      cat.id === updatedCategory.id ? updatedCategory : cat
-    );
-    saveCategories(newCategories);
-    toast({
-      title: "Category updated",
-      description: `${updatedCategory.name} has been updated.`,
-    });
+  const handleUpdateCategory = async (updatedCategory: Category) => {
+    try {
+      setIsSaving(true);
+      const saved = await updateCategory(updatedCategory);
+      setCategories(
+        categories.map((cat) => (cat.id === saved.id ? saved : cat))
+      );
+      toast({
+        title: "Category updated",
+        description: `${saved.name} has been updated.`,
+      });
+    } catch (e) {
+      toast({
+        title: "Update failed",
+        description: (e as Error).message,
+        variant: "destructive",
+      });
+      throw e;
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDeleteCategory = (id: string) => {
+  const handleDeleteCategory = async (id: string) => {
     const category = categories.find((c) => c.id === id);
-    const itemCount = items.filter((item) => item.category === category?.slug).length;
-    
+    const itemCount = items.filter(
+      (item) => item.category === category?.slug
+    ).length;
+
     if (itemCount > 0) {
       toast({
         title: "Cannot delete category",
@@ -129,20 +100,45 @@ const CategoriesPage = () => {
       return;
     }
 
-    const newCategories = categories.filter((cat) => cat.id !== id);
-    saveCategories(newCategories);
-    toast({
-      title: "Category deleted",
-      description: `${category?.name} has been removed.`,
-      variant: "destructive",
-    });
+    try {
+      setIsSaving(true);
+      await deleteCategoryById(id);
+      setCategories(categories.filter((cat) => cat.id !== id));
+      toast({
+        title: "Category deleted",
+        description: `${category?.name} has been removed.`,
+        variant: "destructive",
+      });
+    } catch (e) {
+      toast({
+        title: "Delete failed",
+        description: (e as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Loading categories...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <CategoriesManagement
         categories={categories}
         items={items}
+        isSaving={isSaving}
         onAddCategory={handleAddCategory}
         onUpdateCategory={handleUpdateCategory}
         onDeleteCategory={handleDeleteCategory}

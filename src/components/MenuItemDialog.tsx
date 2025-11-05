@@ -20,45 +20,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Loader2 } from "lucide-react";
 
 interface MenuItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item?: MenuItem;
-  onSave: (item: Omit<MenuItem, "id" | "createdAt" | "updatedAt"> & { id?: string }) => void;
+  categories: Category[];
+  isSaving: boolean;
+  onSave: (
+    item: Omit<MenuItem, "id" | "createdAt" | "updatedAt"> & { id?: string }
+  ) => Promise<void>;
 }
-
-const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
 
 export default function MenuItemDialog({
   open,
   onOpenChange,
   item,
+  categories,
+  isSaving,
   onSave,
 }: MenuItemDialogProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
-    category: "mains" as MenuCategory,
+    category: "" as MenuCategory,
     image: "",
     available: true,
   });
-
-  useEffect(() => {
-    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-    if (storedCategories) {
-      const parsed = JSON.parse(storedCategories);
-      setCategories(
-        parsed.map((cat: any) => ({
-          ...cat,
-          createdAt: new Date(cat.createdAt),
-          updatedAt: new Date(cat.updatedAt),
-        }))
-      );
-    }
-  }, []);
 
   useEffect(() => {
     if (item) {
@@ -71,21 +61,27 @@ export default function MenuItemDialog({
         available: item.available,
       });
     } else {
+      // Set default category to first available category or empty
+      const defaultCategory = categories.length > 0 ? categories[0].slug : "";
       setFormData({
         name: "",
         description: "",
         price: "",
-        category: "mains",
+        category: defaultCategory as MenuCategory,
         image: "",
         available: true,
       });
     }
-  }, [item, open]);
+  }, [item, open, categories]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    onSave({
+
+    if (!formData.category) {
+      return; // Don't submit if no category selected
+    }
+
+    await onSave({
       ...(item && { id: item.id }),
       name: formData.name,
       description: formData.description,
@@ -94,17 +90,19 @@ export default function MenuItemDialog({
       image: formData.image || undefined,
       available: formData.available,
     });
-    
-    onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{item ? "Edit Menu Item" : "Add New Menu Item"}</DialogTitle>
+          <DialogTitle>
+            {item ? "Edit Menu Item" : "Add New Menu Item"}
+          </DialogTitle>
           <DialogDescription>
-            {item ? "Update the details of your menu item." : "Create a new item for your menu."}
+            {item
+              ? "Update the details of your menu item."
+              : "Create a new item for your menu."}
           </DialogDescription>
         </DialogHeader>
 
@@ -115,9 +113,12 @@ export default function MenuItemDialog({
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="e.g., Margherita Pizza"
                 required
+                disabled={isSaving}
               />
             </div>
 
@@ -126,25 +127,31 @@ export default function MenuItemDialog({
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Describe your dish..."
                 rows={3}
                 required
+                disabled={isSaving}
               />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">Price (&#8358;)</Label>
                 <Input
                   id="price"
                   type="number"
                   step="0.01"
                   min="0"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price: e.target.value })
+                  }
                   placeholder="0.00"
                   required
+                  disabled={isSaving}
                 />
               </div>
 
@@ -155,6 +162,8 @@ export default function MenuItemDialog({
                   onValueChange={(value: MenuCategory) =>
                     setFormData({ ...formData, category: value })
                   }
+                  required
+                  disabled={isSaving}
                 >
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Select a category" />
@@ -167,7 +176,9 @@ export default function MenuItemDialog({
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                      <SelectItem value="uncategorized" disabled>
+                        No categories available
+                      </SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -180,8 +191,11 @@ export default function MenuItemDialog({
                 id="image"
                 type="url"
                 value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, image: e.target.value })
+                }
                 placeholder="https://example.com/image.jpg"
+                disabled={isSaving}
               />
             </div>
 
@@ -200,16 +214,32 @@ export default function MenuItemDialog({
                 onCheckedChange={(checked) =>
                   setFormData({ ...formData, available: checked })
                 }
+                disabled={isSaving}
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSaving}
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              {item ? "Save Changes" : "Add Item"}
+            <Button
+              type="submit"
+              disabled={categories.length === 0 || isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>{item ? "Save Changes" : "Add Item"}</>
+              )}
             </Button>
           </DialogFooter>
         </form>

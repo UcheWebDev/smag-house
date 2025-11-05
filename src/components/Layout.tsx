@@ -1,7 +1,14 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { ChefHat, LayoutDashboard, UtensilsCrossed, Settings, Menu, X, FolderKanban } from "lucide-react";
+import {
+  LayoutDashboard,
+  UtensilsCrossed,
+  Settings,
+  Menu,
+  X,
+  FolderKanban,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
@@ -12,7 +19,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: UtensilsCrossed, label: "Menu Items", path: "/menu" },
   { icon: FolderKanban, label: "Categories", path: "/categories" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+  // { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 export default function Layout({ children }: LayoutProps) {
@@ -36,15 +43,16 @@ export default function Layout({ children }: LayoutProps) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-border px-4">
-          <div className="flex items-center gap-2">
-            <ChefHat className="h-7 w-7 text-primary" />
-            <span className="text-lg font-bold text-foreground">MenuManager</span>
-          </div>
+        <div className="flex h-16 items-center justify-center border-b border-border px-4 relative">
+          <img
+            src="/logo.png"
+            alt="MenuManager logo"
+            className="w-full max-w-[90px] h-auto object-contain"
+          />
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="lg:hidden flex-shrink-0 absolute right-4"
             onClick={() => setSidebarOpen(false)}
           >
             <X className="h-5 w-5" />
@@ -90,15 +98,13 @@ export default function Layout({ children }: LayoutProps) {
                 <Menu className="h-5 w-5" />
               </Button>
               <h1 className="text-base font-semibold text-foreground sm:text-lg">
-                Restaurant Menu Manager
+                Menu Manager
               </h1>
             </div>
           </div>
         </header>
 
-        <main className="p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

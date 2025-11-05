@@ -12,46 +12,58 @@ import {
 import { Plus, Search } from "lucide-react";
 import MenuItemCard from "@/components/MenuItemCard";
 import MenuItemDialog from "@/components/MenuItemDialog";
+import { getCategories } from "@/lib/menuApi";
+import { toast } from "sonner";
 
 interface MenuManagementProps {
   items: MenuItem[];
-  onAddItem: (item: Omit<MenuItem, "id" | "createdAt" | "updatedAt">) => void;
-  onUpdateItem: (item: MenuItem) => void;
-  onDeleteItem: (id: string) => void;
+  isSaving: boolean;
+  onAddItem: (
+    item: Omit<MenuItem, "id" | "createdAt" | "updatedAt">
+  ) => Promise<void>;
+  onUpdateItem: (item: MenuItem) => Promise<void>;
+  onDeleteItem: (id: string) => Promise<void>;
 }
-
-const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
 
 export default function MenuManagement({
   items,
+  isSaving,
   onAddItem,
   onUpdateItem,
   onDeleteItem,
 }: MenuManagementProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<MenuCategory | "all">("all");
+  const [categoryFilter, setCategoryFilter] = useState<MenuCategory | "all">(
+    "all"
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   useEffect(() => {
-    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-    if (storedCategories) {
-      const parsed = JSON.parse(storedCategories);
-      setCategories(
-        parsed.map((cat: any) => ({
-          ...cat,
-          createdAt: new Date(cat.createdAt),
-          updatedAt: new Date(cat.updatedAt),
-        }))
-      );
-    }
+    void loadCategories();
   }, []);
 
+  const loadCategories = async () => {
+    try {
+      setIsLoadingCategories(true);
+      const cats = await getCategories();
+      setCategories(cats);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      toast.error("Failed to load categories");
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
+
   const filteredItems = items.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
+    const matchesCategory =
+      categoryFilter === "all" || item.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -65,14 +77,21 @@ export default function MenuManagement({
     setDialogOpen(true);
   };
 
-  const handleSave = (itemData: Omit<MenuItem, "id" | "createdAt" | "updatedAt"> & { id?: string }) => {
-    if (itemData.id) {
-      onUpdateItem({
-        ...itemData as MenuItem,
-        updatedAt: new Date(),
-      });
-    } else {
-      onAddItem(itemData);
+  const handleSave = async (
+    itemData: Omit<MenuItem, "id" | "createdAt" | "updatedAt"> & { id?: string }
+  ) => {
+    try {
+      if (itemData.id) {
+        await onUpdateItem({
+          ...(itemData as MenuItem),
+          updatedAt: new Date(),
+        });
+      } else {
+        await onAddItem(itemData);
+      }
+      setDialogOpen(false);
+    } catch (e) {
+      // Error already handled in parent, just don't close dialog
     }
   };
 
@@ -80,10 +99,18 @@ export default function MenuManagement({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Menu Items</h2>
-          <p className="text-sm text-muted-foreground sm:text-base">Manage your restaurant menu items</p>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Menu Items
+          </h2>
+          <p className="text-sm text-muted-foreground sm:text-base">
+            Manage your restaurant menu items
+          </p>
         </div>
-        <Button onClick={handleAdd} className="w-full gap-2 sm:w-auto">
+        <Button
+          onClick={handleAdd}
+          className="w-full gap-2 sm:w-auto"
+          disabled={isSaving}
+        >
           <Plus className="h-4 w-4" />
           Add Item
         </Button>
@@ -101,7 +128,10 @@ export default function MenuManagement({
         </div>
         <Select
           value={categoryFilter}
-          onValueChange={(value) => setCategoryFilter(value as MenuCategory | "all")}
+          onValueChange={(value) =>
+            setCategoryFilter(value as MenuCategory | "all")
+          }
+          disabled={isLoadingCategories}
         >
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Category" />
@@ -119,14 +149,16 @@ export default function MenuManagement({
 
       {filteredItems.length === 0 ? (
         <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 p-6 text-center sm:min-h-[400px] sm:p-8">
-          <p className="mb-2 text-base font-medium text-foreground sm:text-lg">No items found</p>
+          <p className="mb-2 text-base font-medium text-foreground sm:text-lg">
+            No items found
+          </p>
           <p className="mb-4 text-sm text-muted-foreground">
             {items.length === 0
               ? "Get started by adding your first menu item"
               : "Try adjusting your search or filters"}
           </p>
           {items.length === 0 && (
-            <Button onClick={handleAdd} className="gap-2">
+            <Button onClick={handleAdd} className="gap-2" disabled={isSaving}>
               <Plus className="h-4 w-4" />
               Add First Item
             </Button>
@@ -138,6 +170,8 @@ export default function MenuManagement({
             <MenuItemCard
               key={item.id}
               item={item}
+              categories={categories}
+              disabled={isSaving}
               onEdit={handleEdit}
               onDelete={onDeleteItem}
             />
@@ -149,6 +183,8 @@ export default function MenuManagement({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         item={editingItem}
+        categories={categories}
+        isSaving={isSaving}
         onSave={handleSave}
       />
     </div>

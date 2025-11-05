@@ -3,109 +3,109 @@ import { MenuItem } from "@/types/menu";
 import Layout from "@/components/Layout";
 import Dashboard from "./Dashboard";
 import { useToast } from "@/hooks/use-toast";
-import sampleAppetizer from "@/assets/sample-appetizer.jpg";
-import sampleMain from "@/assets/sample-main.jpg";
-import sampleDessert from "@/assets/sample-dessert.jpg";
-
-const STORAGE_KEY = "restaurant-menu-items";
-
-const initialItems: MenuItem[] = [
-  {
-    id: "1",
-    name: "Bruschetta Trio",
-    description: "Three varieties of artisan bruschetta with fresh tomatoes, basil, and olive oil",
-    price: 12.99,
-    category: "appetizers",
-    image: sampleAppetizer,
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    name: "Grilled Ribeye Steak",
-    description: "12oz prime ribeye with roasted vegetables and garlic herb butter",
-    price: 34.99,
-    category: "mains",
-    image: sampleMain,
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "3",
-    name: "Chocolate Lava Cake",
-    description: "Warm chocolate cake with molten center, served with vanilla ice cream",
-    price: 9.99,
-    category: "desserts",
-    image: sampleDessert,
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+import {
+  getItems,
+  insertItem,
+  updateItem,
+  deleteItemById,
+} from "@/lib/menuApi";
 
 const Index = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setItems(
-        parsed.map((item: any) => ({
-          ...item,
-          createdAt: new Date(item.createdAt),
-          updatedAt: new Date(item.updatedAt),
-        }))
-      );
-    } else {
-      setItems(initialItems);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialItems));
-    }
+    void loadItems();
   }, []);
 
-  const saveItems = (newItems: MenuItem[]) => {
-    setItems(newItems);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newItems));
+  const loadItems = async () => {
+    try {
+      setIsLoading(true);
+      const fetchedItems = await getItems();
+      setItems(fetchedItems);
+    } catch (error) {
+      console.error("Failed to load menu items:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load menu items. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleAddItem = (itemData: Omit<MenuItem, "id" | "createdAt" | "updatedAt">) => {
-    const newItem: MenuItem = {
-      ...itemData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    saveItems([...items, newItem]);
-    toast({
-      title: "Item added",
-      description: `${newItem.name} has been added to your menu.`,
-    });
+  const handleAddItem = async (
+    itemData: Omit<MenuItem, "id" | "createdAt" | "updatedAt">
+  ) => {
+    try {
+      const newItem = await insertItem(itemData);
+      setItems([newItem, ...items]);
+      toast({
+        title: "Item added",
+        description: `${newItem.name} has been added to your menu.`,
+      });
+    } catch (error) {
+      console.error("Failed to add item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add item. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleUpdateItem = (updatedItem: MenuItem) => {
-    const newItems = items.map((item) =>
-      item.id === updatedItem.id ? updatedItem : item
-    );
-    saveItems(newItems);
-    toast({
-      title: "Item updated",
-      description: `${updatedItem.name} has been updated.`,
-    });
+  const handleUpdateItem = async (updatedItem: MenuItem) => {
+    try {
+      const updated = await updateItem(updatedItem);
+      setItems(items.map((item) => (item.id === updated.id ? updated : item)));
+      toast({
+        title: "Item updated",
+        description: `${updated.name} has been updated.`,
+      });
+    } catch (error) {
+      console.error("Failed to update item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update item. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteItem = (id: string) => {
+  const handleDeleteItem = async (id: string) => {
     const item = items.find((i) => i.id === id);
-    const newItems = items.filter((item) => item.id !== id);
-    saveItems(newItems);
-    toast({
-      title: "Item deleted",
-      description: `${item?.name} has been removed from your menu.`,
-      variant: "destructive",
-    });
+    try {
+      await deleteItemById(id);
+      setItems(items.filter((item) => item.id !== id));
+      toast({
+        title: "Item deleted",
+        description: `${item?.name} has been removed from your menu.`,
+        variant: "destructive",
+      });
+    } catch (error) {
+      console.error("Failed to delete item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete item. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Loading menu items...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

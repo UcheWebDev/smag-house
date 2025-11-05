@@ -9,14 +9,16 @@ import CategoryDialog from "@/components/CategoryDialog";
 interface CategoriesManagementProps {
   categories: Category[];
   items: MenuItem[];
-  onAddCategory: (category: Omit<Category, "id" | "createdAt" | "updatedAt">) => void;
-  onUpdateCategory: (category: Category) => void;
-  onDeleteCategory: (id: string) => void;
+  isSaving: boolean;
+  onAddCategory: (category: Omit<Category, "id" | "createdAt" | "updatedAt">) => Promise<void>;
+  onUpdateCategory: (category: Category) => Promise<void>;
+  onDeleteCategory: (id: string) => Promise<void>;
 }
 
 export default function CategoriesManagement({
   categories,
   items,
+  isSaving,
   onAddCategory,
   onUpdateCategory,
   onDeleteCategory,
@@ -44,14 +46,19 @@ export default function CategoriesManagement({
     setDialogOpen(true);
   };
 
-  const handleSave = (categoryData: Omit<Category, "id" | "createdAt" | "updatedAt"> & { id?: string }) => {
-    if (categoryData.id) {
-      onUpdateCategory({
-        ...categoryData as Category,
-        updatedAt: new Date(),
-      });
-    } else {
-      onAddCategory(categoryData);
+  const handleSave = async (categoryData: Omit<Category, "id" | "createdAt" | "updatedAt"> & { id?: string }) => {
+    try {
+      if (categoryData.id) {
+        await onUpdateCategory({
+          ...categoryData as Category,
+          updatedAt: new Date(),
+        });
+      } else {
+        await onAddCategory(categoryData);
+      }
+      setDialogOpen(false);
+    } catch (e) {
+      // Error already handled in parent, just don't close dialog
     }
   };
 
@@ -62,7 +69,7 @@ export default function CategoriesManagement({
           <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Categories</h2>
           <p className="text-sm text-muted-foreground sm:text-base">Organize your menu items into categories</p>
         </div>
-        <Button onClick={handleAdd} className="w-full gap-2 sm:w-auto">
+        <Button onClick={handleAdd} className="w-full gap-2 sm:w-auto" disabled={isSaving}>
           <Plus className="h-4 w-4" />
           Add Category
         </Button>
@@ -87,7 +94,7 @@ export default function CategoriesManagement({
               : "Try adjusting your search"}
           </p>
           {categories.length === 0 && (
-            <Button onClick={handleAdd} className="gap-2">
+            <Button onClick={handleAdd} className="gap-2" disabled={isSaving}>
               <Plus className="h-4 w-4" />
               Add First Category
             </Button>
@@ -102,6 +109,7 @@ export default function CategoriesManagement({
               itemCount={getCategoryItemCount(category.slug)}
               onEdit={handleEdit}
               onDelete={onDeleteCategory}
+              disabled={isSaving}
             />
           ))}
         </div>
@@ -111,6 +119,7 @@ export default function CategoriesManagement({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         category={editingCategory}
+        isSaving={isSaving}
         onSave={handleSave}
       />
     </div>

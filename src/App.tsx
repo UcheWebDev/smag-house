@@ -8,6 +8,9 @@ import MenuPage from "./pages/MenuPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import QrPage from "./pages/QrPage";
+
+
 
 const queryClient = new QueryClient();
 
@@ -22,6 +25,8 @@ const App = () => (
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/qr" element={<QrPage />} />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

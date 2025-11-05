@@ -12,18 +12,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
 
 interface CategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category?: Category;
-  onSave: (category: Omit<Category, "id" | "createdAt" | "updatedAt"> & { id?: string }) => void;
+  isSaving: boolean;
+  onSave: (
+    category: Omit<Category, "id" | "createdAt" | "updatedAt"> & { id?: string }
+  ) => Promise<void>;
 }
 
 export default function CategoryDialog({
   open,
   onOpenChange,
   category,
+  isSaving,
   onSave,
 }: CategoryDialogProps) {
   const [formData, setFormData] = useState({
@@ -52,30 +57,37 @@ export default function CategoryDialog({
     setFormData({
       ...formData,
       name,
-      slug: name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      slug: category
+        ? formData.slug
+        : name
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replace(/[^a-z0-9-]/g, ""),
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    onSave({
+
+    await onSave({
       ...(category && { id: category.id }),
       name: formData.name,
       slug: formData.slug,
       description: formData.description || undefined,
     });
-    
-    onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{category ? "Edit Category" : "Add New Category"}</DialogTitle>
+          <DialogTitle>
+            {category ? "Edit Category" : "Add New Category"}
+          </DialogTitle>
           <DialogDescription>
-            {category ? "Update the details of your category." : "Create a new category for organizing menu items."}
+            {category
+              ? "Update the details of your category."
+              : "Create a new category for organizing menu items."}
           </DialogDescription>
         </DialogHeader>
 
@@ -89,6 +101,7 @@ export default function CategoryDialog({
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g., Appetizers"
                 required
+                disabled={isSaving}
               />
             </div>
 
@@ -97,11 +110,14 @@ export default function CategoryDialog({
               <Input
                 id="slug"
                 value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, slug: e.target.value })
+                }
                 placeholder="e.g., appetizers"
                 required
                 pattern="[a-z0-9-]+"
                 title="Only lowercase letters, numbers, and hyphens allowed"
+                disabled={isSaving}
               />
               <p className="text-xs text-muted-foreground">
                 Auto-generated from name, or customize it
@@ -113,19 +129,34 @@ export default function CategoryDialog({
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Describe this category..."
                 rows={3}
+                disabled={isSaving}
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSaving}
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              {category ? "Save Changes" : "Add Category"}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>{category ? "Save Changes" : "Add Category"}</>
+              )}
             </Button>
           </DialogFooter>
         </form>

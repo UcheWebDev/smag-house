@@ -26,3 +26,5 @@ export interface MenuStats {
   byCategory: Record<MenuCategory, number>;
   unavailableItems: number;
 }
+
+export type FilterType = 'All' | 'Appetizers' | 'Pasta Specialities' | 'Desserts' | 'Drinks';

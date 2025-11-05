@@ -4,29 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
-
-const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
+import { useMemo } from "react";
 
 interface MenuItemCardProps {
   item: MenuItem;
+  categories: Category[];
+  disabled?: boolean;
   onEdit: (item: MenuItem) => void;
   onDelete: (id: string) => void;
 }
 
-export default function MenuItemCard({ item, onEdit, onDelete }: MenuItemCardProps) {
-  const [categoryName, setCategoryName] = useState(item.category);
-
-  useEffect(() => {
-    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-    if (storedCategories) {
-      const categories: Category[] = JSON.parse(storedCategories);
-      const category = categories.find((cat) => cat.slug === item.category);
-      if (category) {
-        setCategoryName(category.name);
-      }
-    }
-  }, [item.category]);
+export default function MenuItemCard({
+  item,
+  categories,
+  disabled = false,
+  onEdit,
+  onDelete,
+}: MenuItemCardProps) {
+  const categoryName = useMemo(() => {
+    const category = categories.find((cat) => cat.slug === item.category);
+    return category?.name || item.category;
+  }, [categories, item.category]);
 
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg">
@@ -42,35 +40,44 @@ export default function MenuItemCard({ item, onEdit, onDelete }: MenuItemCardPro
             <span className="text-muted-foreground">No image</span>
           </div>
         )}
-        <div className={cn(
-          "absolute right-2 top-2",
-          item.available ? "opacity-0 group-hover:opacity-100" : ""
-        )}>
+        <div
+          className={cn(
+            "absolute right-2 top-2",
+            item.available ? "opacity-0 group-hover:opacity-100" : ""
+          )}
+        >
           <Badge variant={item.available ? "default" : "destructive"}>
             {item.available ? "Available" : "Unavailable"}
           </Badge>
         </div>
       </div>
-      
+
       <CardContent className="p-3 sm:p-4">
         <div className="mb-1 flex items-start justify-between gap-2">
-          <h3 className="text-sm font-semibold text-foreground sm:text-base">{item.name}</h3>
-          <span className="text-base font-bold text-primary sm:text-lg">${item.price.toFixed(2)}</span>
+          <h3 className="text-sm font-semibold text-foreground sm:text-base">
+            {item.name}
+          </h3>
+          <span className="text-base font-bold text-primary sm:text-lg">
+            &#8358; {item.price.toFixed(2)}
+          </span>
         </div>
-        <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{item.description}</p>
+        <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+          {item.description}
+        </p>
         <div className="mt-2">
           <Badge variant="secondary" className="text-xs capitalize">
             {categoryName}
           </Badge>
         </div>
       </CardContent>
-      
+
       <CardFooter className="gap-2 border-t border-border p-3">
         <Button
           variant="outline"
           size="sm"
           className="flex-1"
           onClick={() => onEdit(item)}
+          disabled={disabled}
         >
           <Pencil className="mr-1 h-3 w-3" />
           Edit
@@ -79,6 +86,7 @@ export default function MenuItemCard({ item, onEdit, onDelete }: MenuItemCardPro
           variant="destructive"
           size="sm"
           onClick={() => onDelete(item.id)}
+          disabled={disabled}
         >
           <Trash2 className="h-3 w-3" />
         </Button>
