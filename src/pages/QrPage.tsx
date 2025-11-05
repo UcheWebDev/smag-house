@@ -90,7 +90,7 @@ const QrPage = () => {
     <main className="min-h-screen bg-gray-50">
       <div className="flex flex-row">
         {/* Left Panel: Menu Content */}
-        <div className="w-3/5 sm:w-1/2 lg:w-2/5 xl:w-1/3 bg-white p-8 sm:p-12 shadow-2xl z-10 h-screen overflow-y-auto menu-scrollbar">
+        <div className="w-3/5 sm:w-1/2 lg:w-2/5 xl:w-1/3 bg-black p-8 sm:p-12 shadow-2xl z-10 h-screen overflow-y-auto menu-scrollbar">
           <QrHeader />
           <QrFilterButtons
             categories={categoryTitles}

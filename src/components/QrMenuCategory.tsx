@@ -12,7 +12,8 @@ const QrMenuCategory = ({ title, items, index }) => {
       className="animate-fade-in-up"
       style={{ animationDelay: `${index * 100}ms` }}
     >
-      <h2 className="text-3xl font-semibold text-amber-600 mb-4 font-serif">
+      {index > 0 && <hr className="border-gray-400 mb-10" />}
+      <h2 className="text-3xl font-semibold text-amber-500 mb-4 font-serif">
         {title}
       </h2>
       <ul className="space-y-4">
@@ -24,9 +25,9 @@ const QrMenuCategory = ({ title, items, index }) => {
               animationDelay: `${index * 100 + (itemIndex + 1) * 50}ms`,
             }}
           >
-            <h3 className="text-lg font-medium text-gray-800">{item.name}</h3>
+            <h3 className="text-lg font-medium text-gray-100">{item.name}</h3>
             {item.description && (
-              <p className="text-sm text-gray-600 mt-1 max-w-prose">
+              <p className="text-sm text-gray-400 mt-1 max-w-prose">
                 {item.description}
               </p>
             )}
