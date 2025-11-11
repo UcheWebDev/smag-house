@@ -11,6 +11,9 @@ import { useState, useEffect } from "react";
 const CATEGORIES_STORAGE_KEY = "restaurant-menu-categories";
 
 import { getCategories } from "@/lib/menuApi";
+import { formatCurrency } from "@/helpers";
+
+
 
 interface DashboardProps {
   items: MenuItem[];
@@ -89,7 +92,7 @@ export default function Dashboard({ items }: DashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground sm:text-3xl">
-              &#8358; {averagePrice.toFixed(2)}
+              &#8358; {formatCurrency(averagePrice)}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">Per menu item</p>
           </CardContent>

@@ -1,4 +1,5 @@
 import type { MenuItem } from "../types/menu";
+import { formatCurrency } from "../helpers";
 
 interface MenuCategoryProps {
   title: string;
@@ -31,6 +32,9 @@ const QrMenuCategory = ({ title, items, index }) => {
                 {item.description}
               </p>
             )}
+            <p className="text-sm text-gray-400 mt-1">
+              &#8358; {formatCurrency(item.price)}
+            </p>
           </li>
         ))}
       </ul>

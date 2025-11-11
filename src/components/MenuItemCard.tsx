@@ -5,6 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { formatCurrency } from "@/helpers";
+
+
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -58,7 +61,7 @@ export default function MenuItemCard({
             {item.name}
           </h3>
           <span className="text-base font-bold text-primary sm:text-lg">
-            &#8358; {item.price.toFixed(2)}
+            &#8358; {formatCurrency(item.price)}
           </span>
         </div>
         <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">

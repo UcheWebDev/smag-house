@@ -103,6 +103,7 @@ const QrPage = () => {
                 key={category.slug}
                 title={category.title}
                 items={category.items}
+                
                 index={index}
               />
             ))}
